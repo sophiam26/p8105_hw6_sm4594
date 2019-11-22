@@ -182,10 +182,18 @@ weather_df =
 Bootstrapping:
 
 ```{r bootstrap}
-weather_df %>%
+weather_bootstrap = 
+  weather_df %>%
   modelr::bootstrap(n = 5000) %>% 
-  mutate(models = map(strap, ~lm(tmax ~ tmin, data = .x)),
-results = map(models, broom::glance)) %>% 
+  mutate(models = map(strap, ~lm(tmax ~ tmin, data = .x)))
+```
+
+Plotting r2 values:
+
+```{r}
+weather_bootstrap %>%
+mutate(
+  results = map(models, broom::glance)) %>% 
   select(results) %>% 
   unnest(results) %>% 
   ggplot(aes(x = r.squared)) + geom_density() +
@@ -197,11 +205,25 @@ results = map(models, broom::glance)) %>%
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+95% confidence interval for r2:
+
 ```{r}
-weather_df %>%
-  modelr::bootstrap(n = 5000) %>% 
-  mutate(models = map(strap, ~lm(tmax ~ tmin, data = .x)),
-results = map(models, broom::tidy)) %>% 
+weather_bootstrap %>%
+mutate(
+  results = map(models, broom::glance)) %>% 
+  select(results) %>% 
+  unnest(results) %>%
+  pull(r.squared) %>% 
+  as.vector() %>% 
+  quantile(probs = c(0.025, 0.975), na.rm = TRUE)
+```
+
+
+
+```{r}
+weather_bootstrap %>%
+  mutate(
+    results = map(models, broom::tidy)) %>% 
   select(results) %>% 
   unnest(results) %>% 
   select(term, estimate) %>% 
@@ -221,6 +243,24 @@ results = map(models, broom::tidy)) %>%
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+```{r warning = FALSE}
+weather_bootstrap %>%
+  mutate(
+    results = map(models, broom::tidy)) %>% 
+  select(results) %>% 
+  unnest(results) %>% 
+  select(term, estimate) %>% 
+  pivot_wider(
+    names_from = "term",
+    values_from = "estimate"
+  ) %>% 
+  unnest() %>% 
+  janitor::clean_names() %>% 
+  mutate(intercept_beta1 = intercept * tmin) %>% 
+  pull(intercept_beta1) %>% 
+  as.vector() %>% 
+  quantile(probs = c(0.025, 0.975), na.rm = TRUE)
+```
 
 
 
