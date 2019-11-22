@@ -218,7 +218,7 @@ mutate(
   quantile(probs = c(0.025, 0.975), na.rm = TRUE)
 ```
 
-
+Plotting distribution of beta0*beta1
 
 ```{r}
 weather_bootstrap %>%
@@ -243,6 +243,7 @@ weather_bootstrap %>%
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+95% confidence interval for beta0*beta1
 ```{r warning = FALSE}
 weather_bootstrap %>%
   mutate(
