@@ -14,6 +14,7 @@ library(tidyverse)
 Importing and tidying the birthweight dataset:
 
 ```{r birthweight_data}
+#check missing values
 birthweight_data = read_csv(file = "./data/birthweight.csv") %>% 
   janitor::clean_names() %>% 
   mutate(
@@ -90,5 +91,24 @@ Take significant variables from multivariable model to make final model:
 fit_final = lm(bwt ~ gaweeks + mrace + ppbmi + smoken, data = birthweight_data)
 fit_final %>% 
   broom::tidy()
+```
+
+Plot of residuals against fitted values:
+
+```{r residuals_plot}
+birthweight_res = modelr::add_residuals(birthweight_data, fit_final) 
+
+birthweight_res_pred = modelr::add_predictions(birthweight_res, fit_final)
+
+ggplot(birthweight_res_pred, aes(x = pred, y = resid)) + geom_point()
+```
+
+
+Make comparison models:
+
+```{r}
+fit_compare = lm(bwt ~ blength + gaweeks, data = birthweight_data)
+
+fit_compare1 = lm(bwt ~ bhead + blength + babysex, data = birthweight_data)
 ```
 
