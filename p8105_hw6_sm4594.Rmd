@@ -29,7 +29,7 @@ birthweight_data = read_csv(file = "./data/birthweight.csv") %>%
     mrace = fct_infreq(mrace))
 ```
 
-Building a model:
+Test variables in separate models individually to assess significance:
 
 ```{r}
 fit_fincome = lm(bwt ~ fincome, data = birthweight_data) 
@@ -72,7 +72,19 @@ fit_ppbmi %>%
 fit_smoken %>%
   broom::tidy()
 ```
+
+Multivariable model with variabesl that were significant:
+
 ```{r}
 #fincome, gaweeks, momage, mrace, ppbmi, smoken
+fit_multi = lm(bwt ~ fincome + gaweeks + momage + mrace + ppbmi + smoken, data = birthweight_data) 
+
+fit_multi %>% 
+  broom::tidy()
+
+#gaweeks, mrace, ppbmi, smoken
+fit_final = lm(bwt ~ gaweeks + mrace + ppbmi + smoken, data = birthweight_data)
+fit_final %>% 
+  broom::tidy()
 ```
 
