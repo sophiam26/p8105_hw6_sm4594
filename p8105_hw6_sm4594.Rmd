@@ -7,6 +7,9 @@ output: github_document
 
 ```{r setup}
 library(tidyverse)
+library(modelr)
+library(mgcv)
+set.seed(1)
 ```
 
 # Problem 1
@@ -100,9 +103,14 @@ birthweight_res = modelr::add_residuals(birthweight_data, fit_final)
 
 birthweight_res_pred = modelr::add_predictions(birthweight_res, fit_final)
 
-ggplot(birthweight_res_pred, aes(x = pred, y = resid)) + geom_point()
+ggplot(birthweight_res_pred, aes(x = pred, y = resid)) + geom_point() +
+  labs(
+    title = "Residuals vs. Fitted Values for Birthweight Model",
+    x = "Fitted Values",
+    y = "Residuals"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
-
 
 Make comparison models:
 
@@ -111,4 +119,25 @@ fit_compare = lm(bwt ~ blength + gaweeks, data = birthweight_data)
 
 fit_compare1 = lm(bwt ~ bhead + blength + babysex, data = birthweight_data)
 ```
+
+Cross validation:
+
+```{r cv}
+cv_df = 
+  crossv_mc(birthweight_data, 100) %>% 
+  mutate(
+    fit_final = map(train, ~lm(bwt ~ gaweeks + mrace + ppbmi + smoken, data = .x)),
+    fit_compare = map(train, ~lm(bwt ~ blength + gaweeks, data = .x)),
+    fit_compare1 = map(train, ~lm(bwt ~ bhead + blength + babysex, data = .x))
+    ) %>% 
+  mutate(
+    rmse_final = map2_dbl(fit_final, test, ~rmse(model = .x, data = .y)),
+    rmse_compare = map2_dbl(fit_compare, test, ~rmse(model = .x, data = .y)),
+    rmse_compare1 = map2_dbl(fit_compare1, test, ~rmse(model = .x, data = .y))
+    )
+```
+
+
+
+
 
