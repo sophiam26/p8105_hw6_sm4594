@@ -187,7 +187,8 @@ weather_df %>%
   mutate(models = map(strap, ~lm(tmax ~ tmin, data = .x)),
 results = map(models, broom::glance)) %>% 
   select(results) %>% 
-  unnest(results)
+  unnest(results) %>% 
+  ggplot(aes(x = r.squared)) + geom_density()
 ```
 
 
