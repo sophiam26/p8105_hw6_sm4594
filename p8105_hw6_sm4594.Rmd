@@ -137,6 +137,27 @@ cv_df =
     )
 ```
 
+Plot prediction error distribution:
+
+```{r prediction_plot}
+cv_df %>% 
+  select(starts_with("rmse")) %>%
+  pivot_longer(
+    everything(),
+      names_to = "model",
+      values_to = "rmse",
+      names_prefix = "rmse_") %>% 
+  mutate(model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin() +
+    labs(
+    title = "Comparison of Prediction Error Distribution",
+    x = "Model",
+    y = "RMSE"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+  
+```
+
 
 
 
