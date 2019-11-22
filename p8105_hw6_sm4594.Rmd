@@ -197,6 +197,29 @@ results = map(models, broom::glance)) %>%
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+```{r}
+weather_df %>%
+  modelr::bootstrap(n = 5000) %>% 
+  mutate(models = map(strap, ~lm(tmax ~ tmin, data = .x)),
+results = map(models, broom::tidy)) %>% 
+  select(results) %>% 
+  unnest(results) %>% 
+  select(term, estimate) %>% 
+  pivot_wider(
+    names_from = "term",
+    values_from = "estimate"
+  ) %>% 
+  unnest() %>% 
+  janitor::clean_names() %>% 
+  mutate(intercept_beta1 = intercept * tmin) %>% 
+    ggplot(aes(x = intercept_beta1)) + geom_density() +
+      labs(
+    title = "Distribution of Beta0*Beta1",
+    x = "Beta0*Beta1",
+    y = "Density"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
 
 
 
