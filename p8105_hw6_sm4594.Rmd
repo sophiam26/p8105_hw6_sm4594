@@ -27,6 +27,52 @@ birthweight_data = read_csv(file = "./data/birthweight.csv") %>%
     frace = fct_infreq(frace),
     malform = fct_infreq(malform),
     mrace = fct_infreq(mrace))
-  
+```
+
+Building a model:
+
+```{r}
+fit_fincome = lm(bwt ~ fincome, data = birthweight_data) 
+
+fit_gaweeks = lm(bwt ~ gaweeks, data = birthweight_data)
+
+fit_malform = lm(bwt ~ malform, data = birthweight_data)
+
+fit_menarche = lm(bwt ~ menarche, data = birthweight_data)
+
+fit_momage = lm(bwt ~ momage, data = birthweight_data)
+
+fit_mrace = lm(bwt ~ mrace, data = birthweight_data)
+
+fit_ppbmi = lm(bwt ~ ppbmi, data = birthweight_data)
+
+fit_smoken = lm(bwt ~ smoken, data = birthweight_data) 
+
+fit_fincome %>%
+  broom::tidy()
+
+fit_gaweeks %>%
+  broom::tidy()
+
+fit_malform %>%
+  broom::tidy()
+
+fit_menarche %>%
+  broom::tidy()
+
+fit_momage %>%
+  broom::tidy()
+
+fit_mrace %>%
+  broom::tidy()
+
+fit_ppbmi %>%
+  broom::tidy()
+
+fit_smoken %>%
+  broom::tidy()
+```
+```{r}
+#fincome, gaweeks, momage, mrace, ppbmi, smoken
 ```
 
