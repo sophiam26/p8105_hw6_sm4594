@@ -73,15 +73,19 @@ fit_smoken %>%
   broom::tidy()
 ```
 
-Multivariable model with variabesl that were significant:
+Multivariable model with variables that were significant:
 
-```{r}
+```{r multivariable_model}
 #fincome, gaweeks, momage, mrace, ppbmi, smoken
 fit_multi = lm(bwt ~ fincome + gaweeks + momage + mrace + ppbmi + smoken, data = birthweight_data) 
 
 fit_multi %>% 
   broom::tidy()
+```
 
+Take significant variables from multivariable model to make final model: 
+
+```{r final_model}
 #gaweeks, mrace, ppbmi, smoken
 fit_final = lm(bwt ~ gaweeks + mrace + ppbmi + smoken, data = birthweight_data)
 fit_final %>% 
