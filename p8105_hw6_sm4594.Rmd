@@ -184,8 +184,10 @@ Bootstrapping:
 ```{r bootstrap}
 weather_df %>%
   modelr::bootstrap(n = 5000) %>% 
-  mutate(models = map(strap, ~lm(tmax ~ tmin, data = .x)))
-  
+  mutate(models = map(strap, ~lm(tmax ~ tmin, data = .x)),
+results = map(models, broom::glance)) %>% 
+  select(results) %>% 
+  unnest(results)
 ```
 
 
