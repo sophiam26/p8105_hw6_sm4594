@@ -31,6 +31,9 @@ birthweight_data = read_csv(file = "./data/birthweight.csv") %>%
     frace = fct_infreq(frace),
     malform = fct_infreq(malform),
     mrace = fct_infreq(mrace))
+
+#check for missing data
+sum(is.na(birthweight_data))
 ```
 
 Test variables in separate models individually to assess significance:
@@ -117,7 +120,7 @@ Make comparison models:
 ```{r}
 fit_compare = lm(bwt ~ blength + gaweeks, data = birthweight_data)
 
-fit_compare1 = lm(bwt ~ bhead + blength + babysex + bhead:blength + bhead:babysex + blength:babysex + bhead:blength:babysex, data = birthweight_data)
+fit_compare1 = lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex + bhead*blength*babysex, data = birthweight_data)
 ```
 
 Cross validation:
@@ -174,6 +177,15 @@ weather_df =
     tmin = tmin / 10,
     tmax = tmax / 10) %>%
   select(name, id, everything())
+```
+
+Bootstrapping:
+
+```{r bootstrap}
+weather_df %>%
+  modelr::bootstrap(n = 5000) %>% 
+  mutate(models = map(strap, ~lm(tmax ~ tmin, data = .x)))
+  
 ```
 
 
