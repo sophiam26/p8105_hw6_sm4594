@@ -9,12 +9,13 @@ output: github_document
 library(tidyverse)
 library(modelr)
 library(mgcv)
+library(patchwork)
 set.seed(1)
 ```
 
 # Problem 1
 
-Importing and tidying the birthweight dataset:
+## Importing and tidying the birthweight dataset:
 
 ```{r birthweight_data}
 #check missing values
@@ -36,9 +37,11 @@ birthweight_data = read_csv(file = "./data/birthweight.csv") %>%
 sum(is.na(birthweight_data))
 ```
 
-Test variables in separate models individually to assess significance:
+## Model building: 
 
-```{r}
+First, I'll fit univariate models with variables that I believe are associated wih birthweight based on prior knowledge:
+
+```{r univariate}
 fit_fincome = lm(bwt ~ fincome, data = birthweight_data) 
 
 fit_gaweeks = lm(bwt ~ gaweeks, data = birthweight_data)
@@ -56,7 +59,7 @@ fit_ppbmi = lm(bwt ~ ppbmi, data = birthweight_data)
 fit_smoken = lm(bwt ~ smoken, data = birthweight_data) 
 
 fit_fincome %>%
-  broom::tidy()
+  broom::tidy() 
 
 fit_gaweeks %>%
   broom::tidy()
@@ -65,13 +68,13 @@ fit_malform %>%
   broom::tidy()
 
 fit_menarche %>%
-  broom::tidy()
+  broom::tidy() 
 
 fit_momage %>%
-  broom::tidy()
+  broom::tidy() 
 
 fit_mrace %>%
-  broom::tidy()
+  broom::tidy() 
 
 fit_ppbmi %>%
   broom::tidy()
@@ -80,21 +83,21 @@ fit_smoken %>%
   broom::tidy()
 ```
 
-Multivariable model with variables that were significant:
+Next, I will take variables with a p-value < 0.25 from the bivariate analyses and fit a multivariate model:
 
 ```{r multivariable_model}
-#fincome, gaweeks, momage, mrace, ppbmi, smoken
 fit_multi = lm(bwt ~ fincome + gaweeks + momage + mrace + ppbmi + smoken, data = birthweight_data) 
 
 fit_multi %>% 
   broom::tidy()
 ```
 
-Take significant variables from multivariable model to make final model: 
+Finally, I will take variables with p-value < 0.05 from the multivariate model to make final model: 
 
 ```{r final_model}
 #gaweeks, mrace, ppbmi, smoken
 fit_final = lm(bwt ~ gaweeks + mrace + ppbmi + smoken, data = birthweight_data)
+
 fit_final %>% 
   broom::tidy()
 ```
@@ -115,9 +118,15 @@ ggplot(birthweight_res_pred, aes(x = pred, y = resid)) + geom_point() +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+## Model Comparisons
+
 Make comparison models:
 
-```{r}
+* *Model 1 predictors: length at birth and gestational age* 
+
+* *Model 2 predictors: head circumference, length, sex and all interactions* 
+
+```{r comparison_models}
 fit_compare = lm(bwt ~ blength + gaweeks, data = birthweight_data)
 
 fit_compare1 = lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex + bhead*blength*babysex, data = birthweight_data)
@@ -160,10 +169,11 @@ cv_df %>%
   theme(plot.title = element_text(hjust = 0.5))
   
 ```
+Based on the plot above, we can see that the third model, which includes head circumference, length, sex and all interactions as predictors is best based on the low RMSE values and shape of the violin plot. The low RMSE values indicate that this model is the best at predicting birthweight.
 
 # Problem 2
 
-Load data:
+Load weather data:
 
 ```{r weather_data}
 weather_df = 
@@ -188,10 +198,10 @@ weather_bootstrap =
   mutate(models = map(strap, ~lm(tmax ~ tmin, data = .x)))
 ```
 
-Plotting r2 values:
+Plotting r2 and beta0*beta1 values:
 
 ```{r}
-weather_bootstrap %>%
+r2_plot = weather_bootstrap %>%
 mutate(
   results = map(models, broom::glance)) %>% 
   select(results) %>% 
@@ -203,11 +213,37 @@ mutate(
     y = "Density"
   ) +
   theme(plot.title = element_text(hjust = 0.5))
+
+beta_plot = weather_bootstrap %>%
+  mutate(
+    results = map(models, broom::tidy)) %>% 
+  select(results) %>% 
+  unnest(results) %>% 
+  select(term, estimate) %>% 
+  pivot_wider(
+    names_from = "term",
+    values_from = "estimate"
+  ) %>% 
+  unnest() %>% 
+  janitor::clean_names() %>% 
+  mutate(intercept_beta1 = intercept + tmin) %>% 
+    ggplot(aes(x = intercept_beta1)) + geom_density() +
+      labs(
+    title = "Distribution of Beta0*Beta1",
+    x = "Beta0*Beta1",
+    y = "Density"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+r2_plot + beta_plot + plot_layout(widths = c(5,5))
 ```
 
-95% confidence interval for r2:
+The plots show that r-squared and beta0 * beta1 appear to be approximately normally distributed. The mean of r-squared values is about 0.91, while the mean of beta0 * beta1 is about 8.25.
 
-```{r}
+
+95% confidence interval for r2 and beta0*beta1:
+
+```{r warning = FALSE}
 weather_bootstrap %>%
 mutate(
   results = map(models, broom::glance)) %>% 
@@ -216,11 +252,7 @@ mutate(
   pull(r.squared) %>% 
   as.vector() %>% 
   quantile(probs = c(0.025, 0.975), na.rm = TRUE)
-```
 
-Plotting distribution of beta0*beta1
-
-```{r}
 weather_bootstrap %>%
   mutate(
     results = map(models, broom::tidy)) %>% 
@@ -233,35 +265,11 @@ weather_bootstrap %>%
   ) %>% 
   unnest() %>% 
   janitor::clean_names() %>% 
-  mutate(intercept_beta1 = intercept * tmin) %>% 
-    ggplot(aes(x = intercept_beta1)) + geom_density() +
-      labs(
-    title = "Distribution of Beta0*Beta1",
-    x = "Beta0*Beta1",
-    y = "Density"
-  ) +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-95% confidence interval for beta0*beta1
-```{r warning = FALSE}
-weather_bootstrap %>%
-  mutate(
-    results = map(models, broom::tidy)) %>% 
-  select(results) %>% 
-  unnest(results) %>% 
-  select(term, estimate) %>% 
-  pivot_wider(
-    names_from = "term",
-    values_from = "estimate"
-  ) %>% 
-  unnest() %>% 
-  janitor::clean_names() %>% 
-  mutate(intercept_beta1 = intercept * tmin) %>% 
+  mutate(intercept_beta1 = intercept + tmin) %>% 
   pull(intercept_beta1) %>% 
   as.vector() %>% 
   quantile(probs = c(0.025, 0.975), na.rm = TRUE)
 ```
 
-
+The 95% confidence interval for r-squared values is (0.89, 0.93) and the 95% confidence interval for beta0 * beta1 is (7.80, 8.74).
 
