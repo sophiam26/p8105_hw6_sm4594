@@ -207,13 +207,13 @@ mutate(
   results = map(models, broom::glance)) %>% 
   select(results) %>% 
   unnest(results) %>% 
-  ggplot(aes(x = r.squared)) + geom_density() +
-      labs(
-    title = "Distribution of R-squared Values",
-    x = "R-squared",
-    y = "Density"
-  ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  ggplot(aes(x = r.squared)) + 
+    geom_density() +
+    labs(
+      title = "Distribution of R-squared Values",
+      x = "R-squared",
+      y = "Density") +
+    theme(plot.title = element_text(hjust = 0.5))
 
 beta_plot = weather_bootstrap %>%
   mutate(
@@ -228,13 +228,13 @@ beta_plot = weather_bootstrap %>%
   unnest() %>% 
   janitor::clean_names() %>% 
   mutate(intercept_beta1 = intercept + tmin) %>% 
-    ggplot(aes(x = intercept_beta1)) + geom_density() +
+    ggplot(aes(x = intercept_beta1)) + 
+      geom_density() +
       labs(
-    title = "Distribution of Beta0*Beta1",
-    x = "Beta0*Beta1",
-    y = "Density"
-  ) +
-  theme(plot.title = element_text(hjust = 0.5))
+        title = "Distribution of Beta0*Beta1",
+        x = "Beta0*Beta1",
+        y = "Density") +
+      theme(plot.title = element_text(hjust = 0.5))
 
 r2_plot + beta_plot + plot_layout(widths = c(5,5))
 ```
