@@ -169,6 +169,7 @@ cv_df %>%
   theme(plot.title = element_text(hjust = 0.5))
   
 ```
+
 Based on the plot above, we can see that the third model, which includes head circumference, length, sex and all interactions as predictors is best based on the low RMSE values and shape of the violin plot. The low RMSE values indicate that this model is the best at predicting birthweight.
 
 # Problem 2
