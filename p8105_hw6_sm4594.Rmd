@@ -266,7 +266,7 @@ weather_bootstrap %>%
   ) %>% 
   unnest() %>% 
   janitor::clean_names() %>% 
-  mutate(intercept_beta1 = intercept + tmin) %>% 
+  mutate(intercept_beta1 = log(intercept*tmin)) %>% 
   pull(intercept_beta1) %>% 
   as.vector() %>% 
   quantile(probs = c(0.025, 0.975), na.rm = TRUE)
